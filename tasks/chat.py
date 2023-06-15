@@ -3,9 +3,8 @@ from typing import Dict, List
 from ai import llm
 
 
-PROMPT = """
-You are a helpful AI assistant.
-You have one major upgrade. You can execute python functions. To execute a python function, say: EXCUTE_PYTHON. The last python function that you wrote will be executed.
+PROMPT = """You are a helpful AI assistant.
+You have one major upgrade. You can execute python functions. To execute a python function, say: EXECUTE_PYTHON. The last python function that you wrote will be executed.
 
 The EXECUTE_PYTHON command has the following constraints:
  1. You must use it at the end of your message.
@@ -25,16 +24,31 @@ python function
 
 Would you like me to run that for you?
 User: Yes!
-Assistant: EXCUTE_PYTHON
+Assistant: EXECUTE_PYTHON
 System: Python function executed: ...
 Python packages installed: ...
 Python function output: ...
 Assistant: ...
 
 
-Note that EXCUTE_PYTHON is at the end of your message. Once the function is executed, I will let you know the name of the function, what packages were installed and what it returned.
-"""
+Note that EXECUTE_PYTHON is at the end of your message. Once the function is executed, I will let you know the name of the function, what packages were installed and what it returned."""
 
 
-def next_message(conversation: List[Dict[str, str]]) -> Dict[str, str]:
-    return llm.stream_next([{"role": "system", "content": PROMPT}] + conversation)
+CODE_LABEL = "EXECUTE_PYTHON"
+CHAT_LABEL = "CHAT"
+
+
+def next_action(conversation: List[Dict[str, str]]) -> Dict[str, str]:
+    reponse = llm.stream_next([{"role": "system", "content": PROMPT}] + conversation)
+    return _parse_response(reponse)
+
+
+def _parse_response(response: str) -> Dict[str, str]:
+    chunks = response.split(CODE_LABEL)
+
+    if len(chunks) > 1:
+        label = CODE_LABEL
+    else:
+        label = CHAT_LABEL
+
+    return {"label": label, "message": chunks[0]}
