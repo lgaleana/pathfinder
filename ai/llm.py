@@ -10,7 +10,7 @@ load_dotenv()
 
 
 openai.api_key = os.environ["OPENAI_KEY_PERSONAL"]
-MODEL = "gpt-3.5-turbo-0613"
+MODEL = "gpt-3.5-turbo-16k-0613"
 TEMPERATURE = 0
 
 
@@ -54,11 +54,9 @@ def stream_next(
 
     next_ = ""
     for chunk in response:
-        if (
-            "content" in chunk["choices"][0]["delta"]
-            and chunk["choices"][0]["delta"]["content"]
-        ):
-            next_ += chunk["choices"][0]["delta"]["content"]
-            print_assistant(chunk["choices"][0]["delta"]["content"], end="", flush=True)
+        delta = chunk["choices"][0]["delta"]  # type: ignore
+        if "content" in delta and delta["content"]:  # type: ignore
+            next_ += delta["content"]  # type: ignore
+            print_assistant(delta["content"], end="", flush=True)  # type: ignore
     print_assistant()
     return next_

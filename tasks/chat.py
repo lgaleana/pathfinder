@@ -1,6 +1,7 @@
 from typing import Dict, List
 
 from ai import llm
+from utils.io import print_system
 
 
 PROMPT = """You are a helpful AI assistant.
@@ -39,7 +40,7 @@ CHAT_LABEL = "CHAT"
 
 
 def next_action(conversation: List[Dict[str, str]]) -> Dict[str, str]:
-    print(conversation)
+    print_system(conversation)
     reponse = llm.stream_next([{"role": "system", "content": PROMPT}] + conversation)
     return _parse_response(reponse)
 
