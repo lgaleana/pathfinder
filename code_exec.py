@@ -10,11 +10,10 @@ def install_packages(packages: List[str]) -> None:
 
 
 def get_function_by_exec(script: str) -> Optional[Callable]:
-    exec(script, locals())
-
     locals_ = locals()
+    exec(script, locals_)
+    # Find the last declared function
     for var in reversed(locals_.values()):
-        # Try to run all local functions
         if callable(var):
             return var
     return None
