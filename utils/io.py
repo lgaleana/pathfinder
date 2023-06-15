@@ -1,10 +1,10 @@
-def print_system(message) -> str:
+def print_system(message: str = "") -> str:
     print(f"\033[0;0m{message}")
     return message
 
 
-def print_assistant(message) -> str:
-    print(f"\033[92m{message}")
+def print_assistant(message: str = "", end: str = "\n", flush: bool = False) -> str:
+    print(f"\033[92m{message}", end=end, flush=flush)
     return message
 
 

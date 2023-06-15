@@ -4,6 +4,8 @@ from typing import Any, Dict, List, Optional
 import openai
 from dotenv import load_dotenv
 
+from utils.io import print_assistant
+
 load_dotenv()
 
 
@@ -17,6 +19,7 @@ def call(
     model: Optional[str] = None,
     temperature: Optional[float] = None,
     stop: Optional[str] = None,
+    stream: Optional[bool] = None,
 ) -> Dict[str, Any]:
     if not model:
         model = MODEL
@@ -28,6 +31,7 @@ def call(
         messages=messages,
         temperature=temperature,
         stop=stop,
+        stream=stream,
     )
 
 
@@ -38,3 +42,23 @@ def next(
     stop: Optional[str] = None,
 ) -> str:
     return call(messages, model, temperature, stop)["choices"][0]["message"]["content"]
+
+
+def stream_next(
+    messages: List[Dict[str, str]],
+    model: Optional[str] = None,
+    temperature: Optional[float] = None,
+    stop: Optional[str] = None,
+) -> str:
+    response = call(messages, model, temperature, stop, stream=True)
+
+    next_ = ""
+    for chunk in response:
+        if (
+            "content" in chunk["choices"][0]["delta"]
+            and chunk["choices"][0]["delta"]["content"]
+        ):
+            next_ += chunk["choices"][0]["delta"]["content"]
+            print_assistant(chunk["choices"][0]["delta"]["content"], end="", flush=True)
+    print_assistant()
+    return next_

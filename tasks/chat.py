@@ -1,9 +1,6 @@
-import re
-from datetime import datetime
 from typing import Dict, List
 
 from ai import llm
-from utils.io import print_system
 
 
 PROMPT = """
@@ -13,4 +10,4 @@ You have one tool at your disposal, which you can use at any time. The tool is t
 
 
 def next_message(conversation: List[Dict[str, str]]) -> Dict[str, str]:
-    return llm.next([{"role": "system", "content": PROMPT}] + conversation)
+    return llm.stream_next([{"role": "system", "content": PROMPT}] + conversation)
