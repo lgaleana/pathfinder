@@ -7,7 +7,21 @@ from tasks.chat import CHAT_LABEL
 from utils.io import user_input
 
 
-conversation = []
+def run(conversation: List[Dict[str, str]] = []) -> None:
+    while True:
+        ai_action = chat.next_action(conversation)
+        conversation.append({"role": "assistant", "content": ai_action["message"]})
+
+        if ai_action["label"] == CHAT_LABEL:
+            user_message = user_input()
+            conversation.append({"role": "user", "content": user_message})
+        else:
+            code = get_last_code_in_conversation(conversation)
+            if code:
+                packages = pip.get_packages(code)
+                install_packages(packages)
+                print(packages)
+            break
 
 
 def get_last_code_in_conversation(conversation: List[Dict[str, str]]) -> Optional[str]:
@@ -21,17 +35,5 @@ def get_last_code_in_conversation(conversation: List[Dict[str, str]]) -> Optiona
     return None
 
 
-while True:
-    ai_action = chat.next_action(conversation)
-    conversation.append({"role": "assistant", "content": ai_action["message"]})
-
-    if ai_action["label"] == CHAT_LABEL:
-        user_message = user_input()
-        conversation.append({"role": "user", "content": user_message})
-    else:
-        code = get_last_code_in_conversation(conversation)
-        if code:
-            packages = pip.get_packages(code)
-            install_packages(packages)
-            print(packages)
-        break
+if __name__ == "__main__":
+    run()

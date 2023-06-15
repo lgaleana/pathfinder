@@ -39,6 +39,7 @@ CHAT_LABEL = "CHAT"
 
 
 def next_action(conversation: List[Dict[str, str]]) -> Dict[str, str]:
+    print(conversation)
     reponse = llm.stream_next([{"role": "system", "content": PROMPT}] + conversation)
     return _parse_response(reponse)
 
