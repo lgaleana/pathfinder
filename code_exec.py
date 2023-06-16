@@ -19,6 +19,6 @@ def get_function_by_exec(script: str) -> Optional[Callable]:
     return None
 
 
-def get_func_params(func: Callable) -> List[str]:
+def get_func_params(func: Callable):
     sig = inspect.signature(func)
-    return list(sig.parameters.keys())
+    return sig.parameters

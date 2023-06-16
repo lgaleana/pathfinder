@@ -23,9 +23,10 @@ def run(conversation: List[Dict[str, str]] = []) -> None:
             print_system(f"Will install the following packages: {packages}")
             if packages is not None and code:
                 try:
-                    func_name, output = run_code(packages, code)
+                    func_name, inputs, output = run_code(packages, code)
                     system_message = f"""Python function executed: {func_name}
 Python packages installed: {packages}
+Python function inputs: {inputs}
 Python function output: {output}"""
                     print_system(system_message)
                     break
@@ -53,22 +54,25 @@ def get_packages_and_code(
 def run_code(
     packages: List[str],
     code: str,
-) -> Tuple[str, Any]:
-    install_packages(packages)
-
+) -> Tuple[str, Dict[str, Any], Any]:
     func = get_function_by_exec(code)
     if func:
-        input_names = get_func_params(func)
-        params = {}
+        params = get_func_params(func)
+        resolved_params = {}
         print_system("Function inputs")
-        for name in input_names:
-            params[name] = user_input(f"{name}: ")
+        for name, param in params.items():
+            param_value = user_input(f"{name}: ")
+            if param.annotation is not param.empty:
+                resolved_params[name] = param.annotation(param_value)
+            else:
+                resolved_params[name] = param_value
 
+        install_packages(packages)
         print_system("Running function...")
-        output = func(*params.values())
+        output = func(*resolved_params.values())
         print_system(output)
 
-        return func.__name__, output
+        return func.__name__, resolved_params, output
     raise Exception("No function found.")
 
 

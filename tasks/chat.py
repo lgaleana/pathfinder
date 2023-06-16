@@ -5,7 +5,7 @@ from utils.io import print_system
 
 
 PROMPT = """You are a helpful AI assistant.
-You have one major upgrade. You can execute python functions. To execute a python function, say: EXECUTE_PYTHON. The last python function that you wrote will be executed.
+You have one major upgrade. You can execute python functions. To execute a python function, say: EXECUTE_PYTHON. The last python function that you wrote will be executed. All python packages will be installed for you. When writing code, use hints in function signatures.
 
 The EXECUTE_PYTHON command has the following constraints:
  1. You must use it at the end of your message.
@@ -21,7 +21,13 @@ User: Dogs!
 Assistant: Here is a python function to do a google search about dogs:
 
 ```
-python function
+from googlesearch import search
+
+def google_search(query: str):
+    results = []
+    for result in search(query, num=5):
+        results.append(result)
+    return results
 ```
 
 Would you like me to run that for you?
@@ -29,6 +35,7 @@ User: Yes!
 Assistant: EXECUTE_PYTHON
 System: Python function executed: ...
 Python packages installed: ...
+Python function inputs: ...
 Python function output: ...
 Assistant: ...
 

@@ -5,18 +5,29 @@ from typing import List
 from ai import llm
 
 
-PROMPT = """The following text has some python code:
-{text}
-
-Find the pip packages that need to be installed and get their corresponsing names in pip.
-Package names in the imports and in pip might be different. Use the correct pip names.
+PROMPT = """From a text, extract the packages that need to be installed and get their corresponding names in pip.
+Package names in the imports and in pip might be different. Use the correct names.
 Include only the packages that need to be installed with pip.
-                            
+
 Put them in a valid JSON:
 ```
 {{
     "packages": List of packages. If no packages, empty list.
 }}
+
+Examples:
+
+Input: from googlesearch import search
+def google_search(query):
+    results = []
+    for result in search(query, num_results=5):
+        results.append(result)
+    return results
+Output: {{
+    "packages": ["googlesearch-python"]
+}}
+
+Input: {text}
 ```"""
 
 
