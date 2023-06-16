@@ -11,6 +11,7 @@ The EXECUTE_PYTHON command has the following constraints:
  1. You must use it at the end of your message.
  2. Your function must be placed in between ```\n...\n```.
  3. You can only execute one python function at a time.
+ 4. The EXECUTE_PYTHON command will install all necessary packages.
 
 Here is an example:
 ...
@@ -49,8 +50,6 @@ def _parse_response(response: str) -> Dict[str, str]:
     chunks = response.split(CODE_LABEL)
 
     if len(chunks) > 1:
-        label = CODE_LABEL
+        return {"label": CODE_LABEL, "message": f"{chunks[0]}{CODE_LABEL}"}
     else:
-        label = CHAT_LABEL
-
-    return {"label": label, "message": chunks[0]}
+        return {"label": CHAT_LABEL, "message": chunks[0]}
