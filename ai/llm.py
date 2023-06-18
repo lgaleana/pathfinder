@@ -22,10 +22,10 @@ FUNCTIONS = [
             "properties": {
                 "function": {
                     "type": "string",
-                    "description": "The function code.",
+                    "description": "The function definition.",
                 },
             },
-            "required": ["code"],
+            "required": ["function"],
         },
     }
 ]

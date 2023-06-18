@@ -14,18 +14,41 @@ FOUR_K_TOKENS = 16000
 def run(conversation: List[Dict[str, str]] = []) -> None:
     while True:
         ai_action = chat.next_action(conversation)
-        print_system(ai_action)
 
         if not ai_action["function"]:
             conversation.append({"role": "assistant", "content": ai_action["message"]})
             user_message = user_input()
             conversation.append({"role": "user", "content": user_message})
         else:
-            system_message = None
+            if ai_action["function"]["name"] != "execute_function":
+                conversation.append(
+                    {
+                        "role": "function",
+                        "name": ai_action["function"]["name"],
+                        "content": f"There is no function called {ai_action['function']['name']}",
+                    }
+                )
+                continue
+
             try:
                 code = json.loads(ai_action["function"]["arguments"])["function"]
+            except:
+                tb = traceback.format_exc()
+                conversation.append(
+                    {
+                        "role": "function",
+                        "name": ai_action["function"]["name"],
+                        "content": f"There was an error parsing the arguments of the function_call execute_function. They must be a valid json: {tb}",
+                    }
+                )
+                print_system(json.dumps(ai_action, indent=2))
+                print_system(tb)
+                breakpoint()
+                continue
+
+            try:
                 packages, func_name, inputs, output, stdout = run_code(code)
-                if len(output) >= FOUR_K_TOKENS:
+                if output is not None and len(output) >= FOUR_K_TOKENS:
                     system_message = (
                         "Function output is too long for the context window."
                     )
@@ -40,12 +63,11 @@ Function output: {output}"""
             except Exception:
                 system_message = traceback.format_exc()
                 print_system(system_message)
-                breakpoint()
             conversation.append(
                 {
                     "role": "function",
                     "name": ai_action["function"]["name"],
-                    "content": str(system_message),
+                    "content": system_message,
                 }
             )
 
