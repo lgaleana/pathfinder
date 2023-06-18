@@ -5,7 +5,7 @@ from utils.io import print_system
 
 
 PROMPT = """You are a helpful AI assistant.
-You can execute python functions. Always show the function first and confirm with the user whether you should execute it.
+You can execute python functions from code that you write yourself. Consider this to be a tool that you can use to accomplish a variety of tasks.
 
 Example:
 Assistant: Hi! How can I help you today?
@@ -24,7 +24,7 @@ Assistant: {
     "arguments": "{"function": "#imports\n#def function"}"
 }
 
-Use your best judegement to determine when is the right moment to execute a function.
+Always show the function first and confirm with the user whether you should execute it. Work with the user and use your best judegement to determine when is the right moment to execute a function.
 """
 
 
