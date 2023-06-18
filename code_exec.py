@@ -10,7 +10,7 @@ def install_packages(packages: List[str]) -> None:
 
 
 def get_function_by_exec(script: str) -> Optional[Callable]:
-    locals_ = locals()
+    locals_ = {}
     exec(script, locals_)
     # Find the last declared function
     for var in reversed(locals_.values()):

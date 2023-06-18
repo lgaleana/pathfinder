@@ -5,9 +5,7 @@ from typing import List
 from ai import llm
 
 
-PROMPT = """From a text, extract the packages that need to be installed and get their corresponding names in pip.
-Package names in the imports and in pip might be different. Use the correct names.
-Include only the packages that need to be installed with pip.
+PROMPT = """I will give you a python script. Extract the packages that need to be installed and get their corresponding names in pip. Package names in the imports and in pip might be different. Use the correct names. Include only the necessary packages that need to be installed with pip.
 
 Put them in a valid JSON:
 ```
@@ -18,22 +16,27 @@ Put them in a valid JSON:
 Examples:
 
 Input: from googlesearch import search
-def google_search(query):
-    results = []
-    for result in search(query, num_results=5):
-        results.append(result)
-    return results
+def my_function():
+    # code
 Output: {{
     "packages": ["googlesearch-python"]
 }}
-
-Input: {text}
+Input: import webbrowser  # There is no need to pip install the webbrowser package
+def my_function():
+    # code
+Output: {{
+    "packages": []
+}}
 ```"""
 
 
 def get_packages(text: str) -> List[str]:
-    formatted_prompt = PROMPT.format(text=text)
-    reponse = llm.next([{"role": "user", "content": formatted_prompt}])
+    reponse = llm.next(
+        [
+            {"role": "user", "content": PROMPT},
+            {"role": "user", "content": f"Input: {text}"},
+        ]
+    )
     return _parse_response(reponse)
 
 

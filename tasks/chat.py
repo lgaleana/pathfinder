@@ -1,62 +1,36 @@
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
 
 from ai import llm
 from utils.io import print_system
 
 
 PROMPT = """You are a helpful AI assistant.
-You have one major upgrade. You can execute python functions. To execute a python function, say: EXECUTE_PYTHON. The last python function that you wrote will be executed. All python packages will be installed for you. When writing code, use hints in function signatures.
+You can execute python functions. Always show the function first and confirm with the user whether you should execute it.
 
-The EXECUTE_PYTHON command has the following constraints:
- 1. You must use it at the end of your message.
- 2. Your function must be placed in between ```\n...\n```.
- 3. You can only execute one python function at a time.
- 4. The EXECUTE_PYTHON command will install all necessary packages.
-
-Here is an example:
-...
+Example:
+Assistant: Hi! How can I help you today?
 User: I want to do a google search.
-Assistant: Sure! I can help you with that. What would you like to search for on Google?
-User: Dogs!
-Assistant: Here is a python function to do a google search about dogs:
+Assistant: Sure! I can help you with that. Here's a Python function that performs a Google search:
 
 ```
-from googlesearch import search
-
-def google_search(query: str):
-    results = []
-    for result in search(query, num=5):
-        results.append(result)
-    return results
+# imports
+# def function
 ```
 
-Would you like me to run that for you?
-User: Yes!
-Assistant: EXECUTE_PYTHON
-System: Python function executed: ...
-Python packages installed: ...
-Python function inputs: ...
-Python function output: ...
-Assistant: ...
+Let me know if you would like me to execute this function for you.
+User: Yes, please!
+Assistant: {
+    "name": "execute_function",
+    "arguments": "{"function": "#imports\n#def function"}"
+}
+
+Use your best judegement to determine when is the right moment to execute a function.
+"""
 
 
-Note that EXECUTE_PYTHON is at the end of your message. Once the function is executed, I will let you know the name of the function, what packages were installed and what it returned."""
-
-
-CODE_LABEL = "EXECUTE_PYTHON"
-CHAT_LABEL = "CHAT"
-
-
-def next_action(conversation: List[Dict[str, str]]) -> Dict[str, str]:
+def next_action(conversation: List[Dict[str, str]]) -> Dict[str, Any]:
     print_system(conversation)
-    reponse = llm.stream_next([{"role": "system", "content": PROMPT}] + conversation)
-    return _parse_response(reponse)
-
-
-def _parse_response(response: str) -> Dict[str, str]:
-    chunks = response.split(CODE_LABEL)
-
-    if len(chunks) > 1:
-        return {"label": CODE_LABEL, "message": f"{chunks[0]}{CODE_LABEL}"}
-    else:
-        return {"label": CHAT_LABEL, "message": chunks[0]}
+    message, function_ = llm.stream_next(
+        [{"role": "system", "content": PROMPT}] + conversation
+    )
+    return {"message": message, "function": function_}

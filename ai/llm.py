@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import openai
 from dotenv import load_dotenv
@@ -13,6 +13,23 @@ openai.api_key = os.environ["OPENAI_KEY_PERSONAL"]
 MODEL = "gpt-3.5-turbo-16k-0613"
 TEMPERATURE = 0
 
+FUNCTIONS = [
+    {
+        "name": "execute_function",
+        "description": "Execute a python function.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "function": {
+                    "type": "string",
+                    "description": "The function code.",
+                },
+            },
+            "required": ["code"],
+        },
+    }
+]
+
 
 def call(
     messages: List[Dict[str, str]],
@@ -20,12 +37,22 @@ def call(
     temperature: Optional[float] = None,
     stop: Optional[str] = None,
     stream: Optional[bool] = None,
+    functions: Optional[List] = None,
 ) -> Dict[str, Any]:
     if not model:
         model = MODEL
     if temperature is None:
         temperature = TEMPERATURE
 
+    if functions is not None:
+        return openai.ChatCompletion.create(  # type: ignore
+            model=model,
+            messages=messages,
+            temperature=temperature,
+            stop=stop,
+            stream=stream,
+            functions=functions,
+        )
     return openai.ChatCompletion.create(  # type: ignore
         model=model,
         messages=messages,
@@ -49,14 +76,39 @@ def stream_next(
     model: Optional[str] = None,
     temperature: Optional[float] = None,
     stop: Optional[str] = None,
-) -> str:
-    response = call(messages, model, temperature, stop, stream=True)
+) -> Tuple[Optional[str], Optional[Dict]]:
+    response = call(
+        messages, model, temperature, stop, stream=True, functions=FUNCTIONS
+    )
 
-    next_ = ""
+    message = None
+    function_ = None
     for chunk in response:
-        delta = chunk["choices"][0]["delta"]  # type: ignore
-        if "content" in delta and delta["content"]:  # type: ignore
-            next_ += delta["content"]  # type: ignore
-            print_assistant(delta["content"], end="", flush=True)  # type: ignore
+        delta = chunk["choices"][0]["delta"]
+        if "content" in delta and delta["content"]:
+            message = stream(delta, message)
+        elif "function_call" in delta and delta["function_call"]:
+            function_ = collect_function(delta, function_)
     print_assistant()
-    return next_
+    return message, function_
+
+
+def stream(delta: Dict[str, str], message: Optional[str]) -> str:
+    if message is None:
+        message = ""
+    message += delta["content"]
+    print_assistant(delta["content"], end="", flush=True)
+    return message
+
+
+def collect_function(delta: Dict, function_) -> Dict:
+    if function_ is None:
+        function_ = {}
+    func_call = delta["function_call"]
+    for k in func_call:
+        if k not in function_:
+            function_[k] = func_call[k]
+        else:
+            function_[k] += func_call[k]
+    print_assistant(".", end="", flush=True)
+    return function_
