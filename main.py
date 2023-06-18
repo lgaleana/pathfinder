@@ -8,6 +8,8 @@ from code_exec import get_func_params, get_function_by_exec, install_packages
 from tasks import chat, pip
 from utils.io import print_system, user_input
 
+FOUR_K_TOKENS = 16000
+
 
 def run(conversation: List[Dict[str, str]] = []) -> None:
     while True:
@@ -23,11 +25,17 @@ def run(conversation: List[Dict[str, str]] = []) -> None:
             try:
                 code = json.loads(ai_action["function"]["arguments"])["function"]
                 packages, func_name, inputs, output, stdout = run_code(code)
-                system_message = f"""Function executed: {func_name}
+                if len(output) >= FOUR_K_TOKENS:
+                    system_message = (
+                        "Function output is too long for the context window."
+                    )
+                else:
+                    system_message = f"""Function executed: {func_name}
 Packages installed: {packages}
 Function inputs: {inputs}
-Function output: {output}
-Standard output: {stdout}"""
+Function output: {output}"""
+                if len(stdout) < FOUR_K_TOKENS:
+                    system_message += f"\n Standard output: {stdout}"
                 print_system(system_message)
             except Exception:
                 system_message = traceback.format_exc()
@@ -48,6 +56,7 @@ def run_code(code: str) -> Tuple[Optional[List[str]], str, Dict[str, Any], Any, 
     if code:
         func = get_function_by_exec(code)
         packages = pip.get_packages(code)
+        print_system(f"Will install the following packages: {packages}")
         if func:
             params = get_func_params(func)
             resolved_params = {}
@@ -60,7 +69,6 @@ def run_code(code: str) -> Tuple[Optional[List[str]], str, Dict[str, Any], Any, 
                     resolved_params[name] = param_value
 
             if packages is not None:
-                print_system(f"Will install the following packages: {packages}")
                 install_packages(packages)
             print_system("Running function...")
             stdout = StringIO()
