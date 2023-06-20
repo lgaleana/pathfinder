@@ -10,7 +10,7 @@ load_dotenv()
 
 
 openai.api_key = os.environ["OPENAI_KEY_PERSONAL"]
-MODEL = "gpt-3.5-turbo-16k-0613"
+MODEL = "gpt-3.5-turbo-0613"
 TEMPERATURE = 0
 
 FUNCTIONS = [

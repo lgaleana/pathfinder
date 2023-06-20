@@ -31,6 +31,7 @@ Always show the function first and confirm with the user whether you should exec
 def next_action(conversation: List[Dict[str, str]]) -> Dict[str, Any]:
     print_system(conversation)
     message, function_ = llm.stream_next(
-        [{"role": "system", "content": PROMPT}] + conversation
+        [{"role": "system", "content": PROMPT}] + conversation,
+        model="gpt-3.5-turbo-16k-0613",
     )
     return {"message": message, "function": function_}
