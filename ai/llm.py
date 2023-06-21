@@ -13,23 +13,6 @@ openai.api_key = os.environ["OPENAI_KEY_PERSONAL"]
 MODEL = "gpt-3.5-turbo-0613"
 TEMPERATURE = 0
 
-FUNCTIONS = [
-    {
-        "name": "execute_function",
-        "description": "Execute a python function.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "function": {
-                    "type": "string",
-                    "description": "The function definition.",
-                },
-            },
-            "required": ["function"],
-        },
-    }
-]
-
 
 def call(
     messages: List[Dict[str, str]],
@@ -67,8 +50,11 @@ def next(
     model: Optional[str] = None,
     temperature: Optional[float] = None,
     stop: Optional[str] = None,
+    functions: Optional[List] = None,
 ) -> str:
-    return call(messages, model, temperature, stop)["choices"][0]["message"]["content"]
+    return call(messages, model, temperature, stop, stream=False, functions=functions)[
+        "choices"
+    ][0]["message"]["content"]
 
 
 def stream_next(
@@ -76,9 +62,10 @@ def stream_next(
     model: Optional[str] = None,
     temperature: Optional[float] = None,
     stop: Optional[str] = None,
+    functions: Optional[List] = None,
 ) -> Tuple[Optional[str], Optional[Dict]]:
     response = call(
-        messages, model, temperature, stop, stream=True, functions=FUNCTIONS
+        messages, model, temperature, stop, stream=True, functions=functions
     )
 
     message = None

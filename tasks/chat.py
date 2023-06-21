@@ -4,6 +4,23 @@ from ai import llm
 from utils.io import print_system
 
 
+FUNCTIONS = [
+    {
+        "name": "execute_function",
+        "description": "Execute a python function.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "function": {
+                    "type": "string",
+                    "description": "The function definition.",
+                },
+            },
+            "required": ["function"],
+        },
+    }
+]
+
 PROMPT = """You are a helpful AI assistant.
 You can execute python functions from code that you write yourself. Consider this to be a tool that you can use to accomplish a variety of tasks.
 
@@ -32,6 +49,7 @@ def next_action(conversation: List[Dict[str, str]]) -> Dict[str, Any]:
     print_system(conversation)
     message, function_ = llm.stream_next(
         [{"role": "system", "content": PROMPT}] + conversation,
+        functions=FUNCTIONS,
         model="gpt-3.5-turbo-16k-0613",
     )
     return {"message": message, "function": function_}
