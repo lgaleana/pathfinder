@@ -55,8 +55,8 @@ def run(conversation: List[Dict[str, str]] = []) -> None:
 Packages installed: {packages}
 Function inputs: {inputs}
 Function output: {output}"""
-                if len(stdout) < FOUR_K_TOKENS:
-                    system_message += f"\n Standard output: {stdout}"
+                    if len(stdout) < FOUR_K_TOKENS:
+                        system_message += f"\n Standard output: {stdout}"
                 print_system(system_message)
             except Exception:
                 system_message = traceback.format_exc()

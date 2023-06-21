@@ -36,6 +36,7 @@ def extract_imports_and_function(script: str) -> str:
             line.startswith("import")
             or line.startswith("from")
             or line.startswith("def")
+            or line == ""
             or line.startswith("    ")  # Very naive
         ):
             keep_lines.append(line)
