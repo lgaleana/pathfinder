@@ -8,24 +8,24 @@ from ai import llm
 PROMPT = """I will give you a python script. Extract the packages that need to be installed and get their corresponding names in pip. Package names in the imports and in pip might be different. Use the correct names. Include only the necessary packages that need to be installed with pip.
 
 Put them in a valid JSON:
-{{
+{
     "packages": List of packages. If no packages, empty list.
-}}
+}
 
 Examples:
 
 Input: from googlesearch import search
 def my_function():
     # code
-Output: {{
+Output: {
     "packages": ["googlesearch-python"]
-}}
+}
 Input: import webbrowser  # There is no need to pip install the webbrowser package
 def my_function():
     # code
-Output: {{
+Output: {
     "packages": []
-}}
+}
 """
 
 

@@ -59,7 +59,7 @@ Function output: {output}"""
                         system_message += f"\n Standard output: {stdout}"
                 print_system(system_message)
             except Exception:
-                system_message = traceback.format_exc()
+                system_message = f"There was an error executing the function: {traceback.format_exc()}"
                 print_system(system_message)
             conversation.append(
                 {

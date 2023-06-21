@@ -49,9 +49,12 @@ def execute_code(
     code = extract_imports_and_function(script)
     print_system(code)
     if code:
-        func = get_function_by_exec(code)
         packages = pip.get_packages(code)
         print_system(f"Will install the following packages: {packages}")
+        if packages is not None:
+                install_packages(packages)
+
+        func = get_function_by_exec(code)
         if func:
             params = get_func_params(func)
             resolved_params = {}
@@ -63,8 +66,6 @@ def execute_code(
                 else:
                     resolved_params[name] = param_value
 
-            if packages is not None:
-                install_packages(packages)
             print_system("Running function...")
             stdout = StringIO()
             with redirect_stdout(stdout):
