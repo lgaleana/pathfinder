@@ -1,9 +1,10 @@
 import json
 import traceback
+from copy import deepcopy
 from typing import Dict, List
 
-from code_exec import execute_code
-from tasks import chat, analyzer
+from code_exec import execute_code, extract_imports_and_function
+from tasks import analyzer, chat, code
 from utils.io import print_system, user_input
 
 FOUR_K_TOKENS = 16000
@@ -14,16 +15,22 @@ class Conversation(List[Dict[str, str]]):
         super().__init__(iterable)
 
     def add_assistant(self, message: str) -> None:
-        self.append({"role": "assistant", "content": message})
+        self.add("assistant", message)
 
     def add_system(self, message: str) -> None:
-        self.append({"role": "system", "content": message})
+        self.add("system", message)
 
     def add_user(self, message: str) -> None:
-        self.append({"role": "user", "content": message})
+        self.add("user", message)
 
     def add_function(self, name: str, message: str) -> None:
         self.append({"role": "function", "name": name, "content": message})
+
+    def add(self, role: str, message: str) -> None:
+        self.append({"role": role, "content": message})
+
+    def copy(self) -> "Conversation":
+        return deepcopy(self)
 
 
 def run(_conversation: List[Dict[str, str]] = []) -> None:
@@ -57,13 +64,27 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
                 breakpoint()
                 continue
 
-            task_breakdown = analyzer.task_breakdown(
-                conversation
-                + [
-                    {"role": "system", "content": str(arguments)}
-                ]  # Doesn't update conversation
-            )
-            print_system(task_breakdown)
+            planner_convo = conversation.copy()
+            planner_convo.add_system(str(arguments))
+            task_breakdown = analyzer.task_breakdown(planner_convo)
+            planner_convo.add_assistant(str(task_breakdown))
+
+            code_convo = Conversation(planner_convo.copy()[-2:])
+            user_prompt = "Write a python function for: {}."
+            if task_breakdown.is_atomic:
+                code_convo.add_user(user_prompt.format(task_breakdown.task))
+                function_info = code.get(code_convo)
+                code_convo.add_assistant(function_info.json())
+                print_system(extract_imports_and_function(function_info.definition))
+            elif task_breakdown.subtasks:
+                for subtask in task_breakdown.subtasks:
+                    if subtask.is_code_solvable:
+                        code_convo.add_user(user_prompt.format(subtask.task))
+                        function_info = code.get(code_convo)
+                        code_convo.add_assistant(function_info.json())
+                        print_system(
+                            extract_imports_and_function(function_info.definition)
+                        )
             break
 
 

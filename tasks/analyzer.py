@@ -1,44 +1,31 @@
 from typing import Dict, List, Optional
 
+from pydantic import BaseModel, Field
+
 from ai import llm
 from utils.io import print_system
+
+
+class SubTask(BaseModel):
+    task: str = Field(description="Description of the subtask.")
+    is_code_solvable: bool = Field(description="Can it be solved with code?")
+
+
+class TaskBreakdown(BaseModel):
+    task: str = Field(description="Description of the task.")
+    is_atomic: bool = Field(
+        description="Could you write a one python function to accomplish this task?"
+    )
+    subtasks: Optional[List[SubTask]] = Field(None, description="List of subtasks.")
 
 
 FUNCTIONS = [
     {
         "name": "answer",
         "description": "Answer the questions.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "task": {
-                    "type": "string",
-                    "description": "Description of the task.",
-                },
-                "is_atomic": {
-                    "type": "string",
-                    "enum": ["yes", "no"],
-                    "description": "Could you write a one python function to accomplish this task?",
-                },
-                "subtasks": {
-                    "type": "string",
-                    "description": "List of subtasks. Each in a new line.",
-                },
-                "is_code_solvable": {
-                    "type": "string",
-                    "enum": ["yes", "no", "n\a"],
-                    "description": "Can each of these subtasks be solved with code?",
-                },
-                "subtasks_no_code": {
-                    "type": "string",
-                    "description": "List of subtasks that can't be solved with code. Each in a new line.",
-                },
-            },
-            "required": ["task", "is_atomic"],
-        },
+        "parameters": TaskBreakdown.schema(),
     }
 ]
-
 
 PROMPT = """You are an assistant that analyzes a task and decides what is the best way to accomplish it. Ideally, you want to write python code to accomplish the task.
 
@@ -51,12 +38,10 @@ Answer the following questions:
 - Could you write a one python function to accomplish this task? yes/no.
 - If no,
     - How would you break it apart into more subtasks?
-    - Can each of these subtasks be solved with code? yes/no.
-    - If no,
-        - Which subtasks can't be solved with code?"""
+    - For each subtask, can it be solved with code? yes/no."""
 
 
-def task_breakdown(conversation: List[Dict[str, str]]) -> Optional[Dict]:
+def task_breakdown(conversation: List[Dict[str, str]]) -> TaskBreakdown:
     print_system(conversation)
     _, answer = llm.stream_next(
         conversation + [{"role": "system", "content": PROMPT}],
@@ -65,4 +50,4 @@ def task_breakdown(conversation: List[Dict[str, str]]) -> Optional[Dict]:
         function_call={"name": "answer"},  # type: ignore
     )
     print_system(answer["arguments"])
-    return answer["arguments"]
+    return TaskBreakdown.parse_raw(answer["arguments"])
