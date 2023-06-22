@@ -6,43 +6,28 @@ from utils.io import print_system
 
 FUNCTIONS = [
     {
-        "name": "execute_function",
-        "description": "Execute a python function.",
+        "name": "special_task",
+        "description": "Executes a task that otherwise you would be unable to do.",
         "parameters": {
             "type": "object",
             "properties": {
-                "function": {
+                "task": {
                     "type": "string",
-                    "description": "The function definition.",
+                    "description": "The description of the task to accomplish.",
                 },
             },
-            "required": ["function"],
+            "required": ["task"],
         },
     }
 ]
 
 PROMPT = """You are a helpful AI assistant.
-You can execute python functions from code that you write yourself. Consider this to be a tool that you can use to accomplish a variety of tasks.
 
-Example:
-Assistant: Hi! How can I help you today?
-User: I want to do a google search.
-Assistant: Sure! I can help you with that. Here's a Python function that performs a Google search:
+Here are some examples of how to call the special_task function:
+- special_task(Do a google search about dogs)
+- special_task(Visit openai.com and summarize it)
 
-```
-# imports
-# def function
-```
-
-Let me know if you would like me to execute this function for you.
-User: Yes, please!
-Assistant: {
-    "name": "execute_function",
-    "arguments": "{"function": "#imports\n#def function"}"
-}
-
-Always show the function first and confirm with the user whether you should execute it. Work with the user and use your best judegement to determine when is the right moment to execute a function.
-"""
+Say hi."""
 
 
 def next_action(conversation: List[Dict[str, str]]) -> Dict[str, Any]:

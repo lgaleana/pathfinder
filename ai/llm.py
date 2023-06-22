@@ -11,7 +11,7 @@ load_dotenv()
 
 openai.api_key = os.environ["OPENAI_KEY_PERSONAL"]
 MODEL = "gpt-3.5-turbo-0613"
-TEMPERATURE = 0
+TEMPERATURE = 0.0
 
 
 def call(
@@ -21,6 +21,7 @@ def call(
     stop: Optional[str] = None,
     stream: Optional[bool] = None,
     functions: Optional[List] = None,
+    function_call="auto",
 ) -> Dict[str, Any]:
     if not model:
         model = MODEL
@@ -35,6 +36,7 @@ def call(
             stop=stop,
             stream=stream,
             functions=functions,
+            function_call=function_call,
         )
     return openai.ChatCompletion.create(  # type: ignore
         model=model,
@@ -50,11 +52,10 @@ def next(
     model: Optional[str] = None,
     temperature: Optional[float] = None,
     stop: Optional[str] = None,
-    functions: Optional[List] = None,
 ) -> str:
-    return call(messages, model, temperature, stop, stream=False, functions=functions)[
-        "choices"
-    ][0]["message"]["content"]
+    return call(messages, model, temperature, stop, stream=False)["choices"][0][
+        "message"
+    ]["content"]
 
 
 def stream_next(
@@ -63,9 +64,16 @@ def stream_next(
     temperature: Optional[float] = None,
     stop: Optional[str] = None,
     functions: Optional[List] = None,
+    function_call="auto",
 ) -> Tuple[Optional[str], Optional[Dict]]:
     response = call(
-        messages, model, temperature, stop, stream=True, functions=functions
+        messages,
+        model,
+        temperature,
+        stop,
+        stream=True,
+        functions=functions,
+        function_call=function_call,
     )
 
     message = None
