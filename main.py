@@ -9,22 +9,38 @@ from utils.io import print_system, user_input
 FOUR_K_TOKENS = 16000
 
 
-def run(conversation: List[Dict[str, str]] = []) -> None:
+class Conversation(List[Dict[str, str]]):
+    def __init__(self, iterable):
+        super().__init__(iterable)
+
+    def add_assistant(self, message: str) -> None:
+        self.append({"role": "assistant", "content": message})
+
+    def add_system(self, message: str) -> None:
+        self.append({"role": "system", "content": message})
+
+    def add_user(self, message: str) -> None:
+        self.append({"role": "user", "content": message})
+
+    def add_function(self, name: str, message: str) -> None:
+        self.append({"role": "function", "name": name, "content": message})
+
+
+def run(_conversation: List[Dict[str, str]] = []) -> None:
+    conversation = Conversation(_conversation)
+
     while True:
         ai_action = chat.next_action(conversation)
 
         if not ai_action["function"]:
-            conversation.append({"role": "assistant", "content": ai_action["message"]})
+            conversation.add_assistant(ai_action["message"])
             user_message = user_input()
-            conversation.append({"role": "user", "content": user_message})
+            conversation.add_user(user_message)
         else:
             if ai_action["function"]["name"] != "special_task":
-                conversation.append(
-                    {
-                        "role": "function",
-                        "name": ai_action["function"]["name"],
-                        "content": f"There is no function named {ai_action['function']['name']}",
-                    }
+                conversation.add_function(
+                    ai_action["function"]["name"],
+                    f"There is no function named {ai_action['function']['name']}",
                 )
                 continue
 
@@ -32,12 +48,9 @@ def run(conversation: List[Dict[str, str]] = []) -> None:
                 arguments = json.loads(ai_action["function"]["arguments"])
             except:
                 tb = traceback.format_exc()
-                conversation.append(
-                    {
-                        "role": "function",
-                        "name": ai_action["function"]["name"],
-                        "content": f"There was an error parsing the arguments of the function_call {ai_action['function']['name']}. They must be a valid json: {tb}",
-                    }
+                conversation.add_function(
+                    ai_action["function"]["name"],
+                    f"There was an error parsing the arguments of the function_call {ai_action['function']['name']}. They must be a valid json: {tb}",
                 )
                 print_system(json.dumps(ai_action, indent=2))
                 print_system(tb)
@@ -52,6 +65,7 @@ def run(conversation: List[Dict[str, str]] = []) -> None:
             )
             print_system(task_breakdown)
             break
+
 
 # From previous code
 def exec_code(code: str) -> str:
