@@ -45,14 +45,14 @@ def extract_imports_and_function(script: str) -> str:
 
 def execute_code(
     script: str,
-) -> Tuple[Optional[List[str]], str, Dict[str, Any], Any, str]:
+    pip_install: str,
+) -> Tuple[str, Dict[str, Any], Any, str]:
     code = extract_imports_and_function(script)
     print_system(code)
     if code:
-        packages = pip.get_packages(code)
-        print_system(f"Will install the following packages: {packages}")
-        if packages is not None:
-                install_packages(packages)
+        print_system(f"Will install the following packages: {pip_install}")
+        if pip_install:
+            subprocess.check_call([sys.executable, "-m"] + pip_install.split(" "))
 
         func = get_function_by_exec(code)
         if func:
@@ -74,5 +74,5 @@ def execute_code(
                 print_system(stdout.getvalue())
             print_system(output)
 
-            return packages, func.__name__, resolved_params, output, stdout.getvalue()
+            return func.__name__, resolved_params, output, stdout.getvalue()
     raise Exception("No function found to execute.")

@@ -65,9 +65,9 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
                 continue
 
             planner_convo = conversation.copy()
-            planner_convo.add_system(str(arguments))
+            planner_convo.add_user(str(arguments))
             task_breakdown = analyzer.task_breakdown(planner_convo)
-            planner_convo.add_assistant(str(task_breakdown))
+            planner_convo.add_assistant(f"Task breakdown: {task_breakdown.json()}")
 
             code_convo = Conversation(planner_convo.copy()[-2:])
             user_prompt = "Write a python function for: {}."
@@ -75,28 +75,29 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
                 code_convo.add_user(user_prompt.format(task_breakdown.task))
                 function_info = code.get(code_convo)
                 code_convo.add_assistant(function_info.json())
-                print_system(extract_imports_and_function(function_info.definition))
+                exec_code(function_info.code, function_info.pip_install)
             elif task_breakdown.subtasks:
-                for subtask in task_breakdown.subtasks:
-                    if subtask.is_code_solvable:
-                        code_convo.add_user(user_prompt.format(subtask.task))
-                        function_info = code.get(code_convo)
-                        code_convo.add_assistant(function_info.json())
-                        print_system(
-                            extract_imports_and_function(function_info.definition)
-                        )
+                if all([t.is_code_solvable for t in task_breakdown.subtasks]):
+                    for subtask in task_breakdown.subtasks:
+                        if subtask.is_code_solvable:
+                            code_convo.add_user(user_prompt.format(subtask.task))
+                            function_info = code.get(code_convo)
+                            code_convo.add_assistant(function_info.json())
+                            print_system(
+                                extract_imports_and_function(function_info.code)
+                            )
             break
 
 
 # From previous code
-def exec_code(code: str) -> str:
+def exec_code(code: str, pip_install: str) -> str:
     try:
-        packages, func_name, inputs, output, stdout = execute_code(code)
+        func_name, inputs, output, stdout = execute_code(code, pip_install)
         if output is not None and len(output) >= FOUR_K_TOKENS:
             system_message = "Function output is too long for the context window."
         else:
             system_message = f"""Function executed: {func_name}
-Packages installed: {packages}
+Packages installed: {pip_install}
 Function inputs: {inputs}
 Function output: {output}"""
             if len(stdout) < FOUR_K_TOKENS:
