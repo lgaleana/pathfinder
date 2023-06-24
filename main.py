@@ -1,7 +1,7 @@
 import json
 import traceback
 from copy import deepcopy
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 from code_exec import execute_code
 from tasks import analyzer, chat, code
@@ -82,8 +82,10 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
             atomic_tasks = find_atomic_tasks(task_tree)
             print_system(atomic_tasks)
 
-            execute_tasks(atomic_tasks)
-            break
+            output = execute_tasks(atomic_tasks)
+            conversation.add_function(
+                name=ai_action["function"]["name"], message=output
+            )
 
 
 def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
@@ -155,47 +157,67 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
 
 
 def find_atomic_tasks(task_tree: TaskTree) -> List[str]:
-    assert task_tree.is_solvable and not task_tree.unsolvable_subtasks
+    assert (
+        task_tree.is_solvable and not task_tree.unsolvable_subtasks
+    ), "Atomic tasks must be solvable."
 
     if task_tree.is_atomic:
         return [task_tree.task]
 
-    assert task_tree.solvable_subtasks
+    assert (
+        task_tree.solvable_subtasks
+    ), "No solvable subtasks found when looking for atomic tasks."
     return [t for s in task_tree.solvable_subtasks for t in find_atomic_tasks(s)]
 
 
-def execute_tasks(tasks: List[str]):
+def execute_tasks(tasks: List[str]) -> str:
     conversation = Conversation([])
 
+    output = None
     for task in tasks:
         conversation.add_user(f"Write a function for: {task}")
         function_info = code.get(conversation)
         conversation.add_assistant(function_info.json())
-        output = exec_code(function_info.code, function_info.pip_install)
-        breakpoint()
-        conversation.add_system(output)
-
-
-# From previous code
-def exec_code(code: str, pip_install: Optional[str]) -> str:
-    try:
-        func_name, inputs, output, stdout = execute_code(code, pip_install)
-        if output is not None and len(output) >= FOUR_K_TOKENS:
-            system_message = "Function output is too long for the context window."
-        else:
-            system_message = f"""Function executed: {func_name}
-Packages installed: {pip_install}
-Function inputs: {inputs}
-Function output: {output}"""
-            if len(stdout) < FOUR_K_TOKENS:
-                system_message += f"\n Standard output: {stdout}"
-        print_system(system_message)
-    except Exception:
-        system_message = (
-            f"There was an error executing the function: {traceback.format_exc()}"
+        func_name, inputs, output, stdout = exec_code(
+            function_info.code, function_info.pip_install
         )
+        system_message = f"""Function executed: {func_name}
+Packages installed: {function_info.pip_install}
+Function inputs: {inputs}
+Function output: {output}
+Function standard output: {stdout}"""
+        conversation.add_system(system_message)
         print_system(system_message)
-    return system_message
+        breakpoint()
+
+        if not output and stdout:
+            output = stdout
+
+    if not output:
+        output = "Task executed but no information returned."
+
+    return output
+
+
+def exec_code(
+    script: str, pip_install: Optional[str]
+) -> Tuple[Optional[str], Optional[Dict[str, Any]], Any, Optional[str]]:
+    try:
+        func_name, inputs, output, stdout = execute_code(script, pip_install)
+        if output is not None and len(output) >= FOUR_K_TOKENS:
+            output = "Function output is too long for the context window."
+        if stdout is not None:
+            output_len = len(output) if output else 0
+            if output_len + len(stdout) >= FOUR_K_TOKENS:
+                stdout = "Function standard output is too long for the context window."
+        return func_name, inputs, output, stdout
+    except Exception:
+        return (
+            None,
+            None,
+            f"There was an error executing the function: {traceback.format_exc()}",
+            None,
+        )
 
 
 if __name__ == "__main__":
