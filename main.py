@@ -4,7 +4,8 @@ from copy import deepcopy
 from typing import Dict, List, Optional
 
 from code_exec import execute_code
-from tasks import analyzer, chat, code
+from tasks import analyzer, chat
+from tasks.analyzer import TaskTree
 from utils.io import print_system, user_input
 
 FOUR_K_TOKENS = 16000
@@ -66,25 +67,77 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
                 breakpoint()
                 continue
 
-            plan_execute(str(arguments))
+            task_tree = build_solvable_tree(Conversation([]), arguments["task"])
+            print_system(task_tree)
             break
 
 
-def plan_execute(task: str):
-    task_breakdown = analyzer.task_breakdown(task)
-    breakpoint()
+def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
+    conversation.add_user(f"Task: {task}")
+    task_breakdown = analyzer.task_breakdown(conversation)
 
     if task_breakdown.is_atomic:
-        conversation = Conversation([])
-        conversation.add_system(f"Task breakdown: {task_breakdown.json()}")
-        conversation.add_user(f"Write a python function for: {task}.")
-        function_info = code.get(conversation)
-        return exec_code(function_info.code, function_info.pip_install)
-    elif task_breakdown.subtasks:
-        if all([t.is_code_solvable for t in task_breakdown.subtasks]):
-            prompt_tasks = [s.task for s in task_breakdown.subtasks]
-            for subtask in prompt_tasks:
-                plan_execute(subtask)
+        return TaskTree(
+            task=task,
+            is_code_solvable=True,
+            is_atomic=True,
+            solvable_subtasks=[],
+            unsolvable_subtasks=[],
+        )
+
+    if task_breakdown.subtasks:
+        # These trees have not be analyzed
+        solvable_subtasks = [
+            TaskTree(
+                task=s.task,
+                is_code_solvable=True,
+                is_atomic=None,
+                solvable_subtasks=None,
+                unsolvable_subtasks=None,
+            )
+            for s in task_breakdown.subtasks
+            if s.is_code_solvable
+        ]
+        unsolvable_subtasks = [
+            TaskTree(
+                task=s.task,
+                is_code_solvable=False,
+                is_atomic=None,
+                solvable_subtasks=None,
+                unsolvable_subtasks=None,
+            )
+            for s in task_breakdown.subtasks
+            if not s.is_code_solvable
+        ]
+
+        if unsolvable_subtasks:
+            return TaskTree(
+                task=task,
+                is_atomic=False,
+                is_code_solvable=False,
+                solvable_subtasks=solvable_subtasks,
+                unsolvable_subtasks=unsolvable_subtasks,
+            )
+
+        subtasks = [s.task for s in task_breakdown.subtasks]
+        conversation.add_assistant(str({"is_atomic": "false", "subtasks": subtasks}))
+
+        subtask_trees = []
+        for subtask in solvable_subtasks:
+            subtask_tree = build_solvable_tree(conversation.copy(), subtask.task)
+            if not subtask_tree.is_code_solvable:
+                raise AssertionError(
+                    "Code that was said code-solvable before is not code-solvable."
+                )
+            subtask_trees.append(subtask_tree)
+        return TaskTree(
+            task=task,
+            is_atomic=False,
+            is_code_solvable=True,
+            solvable_subtasks=solvable_subtasks,
+            unsolvable_subtasks=[],
+        )
+    raise ValueError("Subtasks should be present.")
 
 
 # From previous code

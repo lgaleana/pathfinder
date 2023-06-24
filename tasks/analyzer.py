@@ -1,4 +1,5 @@
-from typing import List, Optional
+import json
+from typing import Dict, List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -8,7 +9,9 @@ from utils.io import print_system
 
 class SubTask(BaseModel):
     task: str = Field(description="Description of the subtask.")
-    is_code_solvable: bool = Field(description="Can it be solved with code?")
+    is_code_solvable: bool = Field(
+        description="Can it be accomplished by writing code?"
+    )
 
 
 class TaskBreakdown(BaseModel):
@@ -16,6 +19,17 @@ class TaskBreakdown(BaseModel):
         description="Could you write a one python function to accomplish this task?"
     )
     subtasks: Optional[List[SubTask]] = Field(None, description="List of subtasks.")
+
+
+class TaskTree(BaseModel):
+    task: str
+    is_code_solvable: bool
+    is_atomic: Optional[bool]
+    solvable_subtasks: Optional[List["TaskTree"]]
+    unsolvable_subtasks: Optional[List["TaskTree"]]
+
+    def __str__(self):
+        return json.dumps(self.dict(), indent=2)
 
 
 FUNCTIONS = [
@@ -36,16 +50,13 @@ Answer the following questions:
 - Could you write a one python function to accomplish this task? yes/no.
 - If no,
     - How would you break it apart into more subtasks?
-    - For each subtask, can it be solved with code? yes/no."""
+    - For each subtask, can it be accomplished by writing code? yes/no."""
 
 
-def task_breakdown(task: str) -> TaskBreakdown:
-    print_system(task)
+def task_breakdown(conversation: List[Dict[str, str]]) -> TaskBreakdown:
+    print_system(conversation)
     _, answer = llm.stream_next(
-        [
-            {"role": "system", "content": PROMPT},
-            {"role": "system", "content": f"Task: {task}"},
-        ],
+        [{"role": "system", "content": PROMPT}] + conversation,
         model="gpt-4-0613",
         functions=FUNCTIONS,
         function_call={"name": "answer"},  # type: ignore
