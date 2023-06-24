@@ -155,3 +155,20 @@ class Tests(TestCase):
                 },
             ]
         )
+
+    def test_weather(self):
+        run(
+            [
+                {"role": "assistant", "content": "Hi! How can I assist you today?"},
+                {"role": "user", "content": "is it going to rain tomorrow?"},
+                {
+                    "role": "assistant",
+                    "content": "I'm sorry, but as an AI assistant, I don't have access to real-time weather information. However, you can check the weather forecast for tomorrow by using a weather website or app, or by asking a voice assistant like Siri or Google Assistant.",
+                },
+                {"role": "user", "content": "can you look for it?"},
+                {
+                    "role": "user",
+                    "content": "{'task': \"Search for tomorrow's weather forecast\"}",
+                },
+            ]
+        )

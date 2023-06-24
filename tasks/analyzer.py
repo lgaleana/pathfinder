@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
@@ -12,7 +12,6 @@ class SubTask(BaseModel):
 
 
 class TaskBreakdown(BaseModel):
-    task: str = Field(description="Description of the task.")
     is_atomic: bool = Field(
         description="Could you write a one python function to accomplish this task?"
     )
@@ -34,17 +33,19 @@ Be resourceful. For example,
 - To visit a website, you can write a function that scrapes the website.
 
 Answer the following questions:
-- What is the task?
 - Could you write a one python function to accomplish this task? yes/no.
 - If no,
     - How would you break it apart into more subtasks?
     - For each subtask, can it be solved with code? yes/no."""
 
 
-def task_breakdown(conversation: List[Dict[str, str]]) -> TaskBreakdown:
-    print_system(conversation)
+def task_breakdown(task: str) -> TaskBreakdown:
+    print_system(task)
     _, answer = llm.stream_next(
-        conversation + [{"role": "system", "content": PROMPT}],
+        [
+            {"role": "system", "content": PROMPT},
+            {"role": "system", "content": f"Task: {task}"},
+        ],
         model="gpt-4-0613",
         functions=FUNCTIONS,
         function_call={"name": "answer"},  # type: ignore

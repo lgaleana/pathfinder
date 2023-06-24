@@ -1,9 +1,9 @@
 import json
 import traceback
 from copy import deepcopy
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from code_exec import execute_code, extract_imports_and_function
+from code_exec import execute_code
 from tasks import analyzer, chat, code
 from utils.io import print_system, user_input
 
@@ -14,20 +14,22 @@ class Conversation(List[Dict[str, str]]):
     def __init__(self, iterable):
         super().__init__(iterable)
 
-    def add_assistant(self, message: str) -> None:
-        self.add("assistant", message)
+    def add_assistant(self, message: str) -> "Conversation":
+        return self.add("assistant", message)
 
-    def add_system(self, message: str) -> None:
-        self.add("system", message)
+    def add_system(self, message: str) -> "Conversation":
+        return self.add("system", message)
 
-    def add_user(self, message: str) -> None:
-        self.add("user", message)
+    def add_user(self, message: str) -> "Conversation":
+        return self.add("user", message)
 
-    def add_function(self, name: str, message: str) -> None:
+    def add_function(self, name: str, message: str) -> "Conversation":
         self.append({"role": "function", "name": name, "content": message})
+        return self
 
-    def add(self, role: str, message: str) -> None:
+    def add(self, role: str, message: str) -> "Conversation":
         self.append({"role": role, "content": message})
+        return self
 
     def copy(self) -> "Conversation":
         return deepcopy(self)
@@ -64,33 +66,29 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
                 breakpoint()
                 continue
 
-            planner_convo = conversation.copy()
-            planner_convo.add_user(str(arguments))
-            task_breakdown = analyzer.task_breakdown(planner_convo)
-            planner_convo.add_assistant(f"Task breakdown: {task_breakdown.json()}")
-
-            code_convo = Conversation(planner_convo.copy()[-2:])
-            user_prompt = "Write a python function for: {}."
-            if task_breakdown.is_atomic:
-                code_convo.add_user(user_prompt.format(task_breakdown.task))
-                function_info = code.get(code_convo)
-                code_convo.add_assistant(function_info.json())
-                exec_code(function_info.code, function_info.pip_install)
-            elif task_breakdown.subtasks:
-                if all([t.is_code_solvable for t in task_breakdown.subtasks]):
-                    for subtask in task_breakdown.subtasks:
-                        if subtask.is_code_solvable:
-                            code_convo.add_user(user_prompt.format(subtask.task))
-                            function_info = code.get(code_convo)
-                            code_convo.add_assistant(function_info.json())
-                            print_system(
-                                extract_imports_and_function(function_info.code)
-                            )
+            plan_execute(str(arguments))
             break
 
 
+def plan_execute(task: str):
+    task_breakdown = analyzer.task_breakdown(task)
+    breakpoint()
+
+    if task_breakdown.is_atomic:
+        conversation = Conversation([])
+        conversation.add_system(f"Task breakdown: {task_breakdown.json()}")
+        conversation.add_user(f"Write a python function for: {task}.")
+        function_info = code.get(conversation)
+        return exec_code(function_info.code, function_info.pip_install)
+    elif task_breakdown.subtasks:
+        if all([t.is_code_solvable for t in task_breakdown.subtasks]):
+            prompt_tasks = [s.task for s in task_breakdown.subtasks]
+            for subtask in prompt_tasks:
+                plan_execute(subtask)
+
+
 # From previous code
-def exec_code(code: str, pip_install: str) -> str:
+def exec_code(code: str, pip_install: Optional[str]) -> str:
     try:
         func_name, inputs, output, stdout = execute_code(code, pip_install)
         if output is not None and len(output) >= FOUR_K_TOKENS:

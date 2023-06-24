@@ -45,7 +45,7 @@ def extract_imports_and_function(script: str) -> str:
 
 def execute_code(
     script: str,
-    pip_install: str,
+    pip_install: Optional[str],
 ) -> Tuple[str, Dict[str, Any], Any, str]:
     code = extract_imports_and_function(script)
     print_system(code)
