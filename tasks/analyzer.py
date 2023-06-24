@@ -23,7 +23,7 @@ class TaskBreakdown(BaseModel):
 
 class TaskTree(BaseModel):
     task: str
-    is_code_solvable: bool
+    is_solvable: bool
     is_atomic: Optional[bool]
     solvable_subtasks: Optional[List["TaskTree"]]
     unsolvable_subtasks: Optional[List["TaskTree"]]

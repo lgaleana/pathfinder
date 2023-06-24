@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 from code_exec import execute_code
 from tasks import analyzer, chat
 from tasks.analyzer import TaskTree
-from utils.io import print_system, user_input
+from utils.io import print_assistant, print_system, user_input
 
 FOUR_K_TOKENS = 16000
 
@@ -68,7 +68,19 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
                 continue
 
             task_tree = build_solvable_tree(Conversation([]), arguments["task"])
-            print_system(task_tree)
+
+            if not task_tree.is_solvable or task_tree.unsolvable_subtasks:
+                print_assistant(f"Task is unsolvable for now.")
+                break
+
+            print_assistant(f"Will execute:")
+            print_assistant(str(task_tree))
+            confirmation = user_input('"n" to stop: ')
+            if confirmation == "n":
+                break
+
+            atomic_tasks = find_atomic_tasks(task_tree)
+            print_system(atomic_tasks)
             break
 
 
@@ -79,7 +91,7 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
     if task_breakdown.is_atomic:
         return TaskTree(
             task=task,
-            is_code_solvable=True,
+            is_solvable=True,
             is_atomic=True,
             solvable_subtasks=[],
             unsolvable_subtasks=[],
@@ -90,7 +102,7 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
         solvable_subtasks = [
             TaskTree(
                 task=s.task,
-                is_code_solvable=True,
+                is_solvable=True,
                 is_atomic=None,
                 solvable_subtasks=None,
                 unsolvable_subtasks=None,
@@ -101,7 +113,7 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
         unsolvable_subtasks = [
             TaskTree(
                 task=s.task,
-                is_code_solvable=False,
+                is_solvable=False,
                 is_atomic=None,
                 solvable_subtasks=None,
                 unsolvable_subtasks=None,
@@ -114,7 +126,7 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
             return TaskTree(
                 task=task,
                 is_atomic=False,
-                is_code_solvable=False,
+                is_solvable=False,
                 solvable_subtasks=solvable_subtasks,
                 unsolvable_subtasks=unsolvable_subtasks,
             )
@@ -125,7 +137,7 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
         subtask_trees = []
         for subtask in solvable_subtasks:
             subtask_tree = build_solvable_tree(conversation.copy(), subtask.task)
-            if not subtask_tree.is_code_solvable:
+            if not subtask_tree.is_solvable:
                 raise AssertionError(
                     "Code that was said code-solvable before is not code-solvable."
                 )
@@ -133,11 +145,21 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
         return TaskTree(
             task=task,
             is_atomic=False,
-            is_code_solvable=True,
-            solvable_subtasks=solvable_subtasks,
+            is_solvable=True,
+            solvable_subtasks=subtask_trees,
             unsolvable_subtasks=[],
         )
     raise ValueError("Subtasks should be present.")
+
+
+def find_atomic_tasks(task_tree: TaskTree) -> List[str]:
+    assert task_tree.is_solvable and not task_tree.unsolvable_subtasks
+
+    if task_tree.is_atomic:
+        return [task_tree.task]
+
+    assert task_tree.solvable_subtasks
+    return [t for s in task_tree.solvable_subtasks for t in find_atomic_tasks(s)]
 
 
 # From previous code
