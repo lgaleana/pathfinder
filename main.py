@@ -4,7 +4,7 @@ from copy import deepcopy
 from typing import Dict, List, Optional
 
 from code_exec import execute_code
-from tasks import analyzer, chat
+from tasks import analyzer, chat, code
 from tasks.analyzer import TaskTree
 from utils.io import print_assistant, print_system, user_input
 
@@ -81,6 +81,8 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
 
             atomic_tasks = find_atomic_tasks(task_tree)
             print_system(atomic_tasks)
+
+            execute_tasks(atomic_tasks)
             break
 
 
@@ -160,6 +162,18 @@ def find_atomic_tasks(task_tree: TaskTree) -> List[str]:
 
     assert task_tree.solvable_subtasks
     return [t for s in task_tree.solvable_subtasks for t in find_atomic_tasks(s)]
+
+
+def execute_tasks(tasks: List[str]):
+    conversation = Conversation([])
+
+    for task in tasks:
+        conversation.add_user(f"Write a function for: {task}")
+        function_info = code.get(conversation)
+        conversation.add_assistant(function_info.json())
+        output = exec_code(function_info.code, function_info.pip_install)
+        breakpoint()
+        conversation.add_system(output)
 
 
 # From previous code

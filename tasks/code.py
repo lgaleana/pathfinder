@@ -22,7 +22,7 @@ FUNCTIONS = [
     }
 ]
 
-PROMPT = """You are an assistant that writes clever, readable python code. You have been asked to write a python function to accomplish a task.
+PROMPT = """You are an assistant that writes clever, readable python code.
 
 Do it in the following steps:
 1. Explain the logic in your code.
@@ -33,7 +33,7 @@ Do it in the following steps:
 def get(conversation: List[Dict[str, str]]) -> FunctionInfo:
     print_system(conversation)
     _, function = llm.stream_next(
-        conversation + [{"role": "system", "content": PROMPT}],
+        [{"role": "system", "content": PROMPT}] + conversation,
         functions=FUNCTIONS,
         function_call={"name": "steps"},  # type: ignore
     )
