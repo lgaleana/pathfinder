@@ -82,7 +82,7 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
             atomic_tasks = find_atomic_tasks(task_tree)
             print_system(atomic_tasks)
 
-            output = execute_tasks(atomic_tasks)
+            output = execute_tasks(task_tree.task, atomic_tasks)
             conversation.add_function(
                 name=ai_action["function"]["name"], message=output
             )
@@ -170,28 +170,14 @@ def find_atomic_tasks(task_tree: TaskTree) -> List[str]:
     return [t for s in task_tree.solvable_subtasks for t in find_atomic_tasks(s)]
 
 
-def execute_tasks(tasks: List[str]) -> str:
-    conversation = Conversation([])
-
+def execute_tasks(main_task: str, tasks: List[str]) -> str:
+    prev_fucntions = []
     output = None
     for task in tasks:
-        conversation.add_user(f"Write a function for: {task}")
-        function_info = code.get(conversation)
-        conversation.add_assistant(function_info.json())
-        func_name, inputs, output, stdout = exec_code(
-            function_info.code, function_info.pip_install
-        )
-        system_message = f"""Function executed: {func_name}
-Packages installed: {function_info.pip_install}
-Function inputs: {inputs}
-Function output: {output}
-Function standard output: {stdout}"""
-        conversation.add_system(system_message)
-        print_system(system_message)
+        function_info = code.get(main_task, task, tasks, prev_fucntions)
+        prev_fucntions.append(function_info.code)
+        print_system(function_info.code)
         breakpoint()
-
-        if not output and stdout:
-            output = stdout
 
     if not output:
         output = "Task executed but no information returned."

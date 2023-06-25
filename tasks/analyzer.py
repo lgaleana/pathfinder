@@ -18,12 +18,6 @@ class TaskBreakdown(BaseModel):
     is_atomic: bool = Field(
         description="Could you write a one python function to accomplish this task?"
     )
-    is_info_needed: Optional[bool] = Field(
-        description="Do you need any information from the user?"
-    )
-    info_needed: Optional[str] = Field(
-        description="What information do you need from the user?"
-    )
     subtasks: Optional[List[SubTask]] = Field(None, description="List of subtasks.")
 
 
@@ -54,10 +48,6 @@ Be resourceful. For example,
 
 Answer the following questions:
 - Could you write a one python function to accomplish this task? yes/no.
-- If yes,
-    - Do you need any information from the user? yes/no.
-    If yes,
-        - What information do you need?
 - If no,
     - How would you break it apart into more subtasks?
     - For each subtask, can it be accomplished by writing code? yes/no."""
