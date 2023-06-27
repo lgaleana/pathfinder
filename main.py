@@ -156,13 +156,13 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
     raise ValueError("Subtasks should be present.")
 
 
-def find_atomic_tasks(task_tree: TaskTree) -> List[str]:
+def find_atomic_tasks(task_tree: TaskTree) -> List[TaskTree]:
     assert (
         task_tree.is_solvable and not task_tree.unsolvable_subtasks
     ), "Atomic tasks must be solvable."
 
     if task_tree.is_atomic:
-        return [task_tree.task]
+        return [task_tree]
 
     assert (
         task_tree.solvable_subtasks
@@ -170,12 +170,12 @@ def find_atomic_tasks(task_tree: TaskTree) -> List[str]:
     return [t for s in task_tree.solvable_subtasks for t in find_atomic_tasks(s)]
 
 
-def execute_tasks(main_task: str, tasks: List[str]) -> str:
-    prev_fucntions = []
+def execute_tasks(main_task: str, tasks: List[TaskTree]) -> str:
+    subtasks: List[Tuple[str, Optional[str]]] = [(t.task, None) for t in tasks]
     output = None
-    for task in tasks:
-        function_info = code.get(main_task, task, tasks, prev_fucntions)
-        prev_fucntions.append(function_info.code)
+    for i, task in enumerate(subtasks):
+        function_info = code.get(main_task, subtasks, i)
+        subtasks[i] = (task[0], function_info.code)
         print_system(function_info.code)
         breakpoint()
 
