@@ -5,196 +5,81 @@ from tasks import code
 
 class Tests(TestCase):
     def test_google_search(self):
-        code.get(
+        code._get(
             [
                 {
-                    "role": "system",
-                    "content": "{'task': 'Do a google search about dogs'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Do a google search about dogs' is_atomic=True subtasks=None",
-                },
-                {
                     "role": "user",
-                    "content": "Write a python function for: Do a google search about dogs.",
-                },
+                    "content": 'You are an assistant that writes clever, readable python code.\n\nThe ultimate goal is to write code for this task: Do a google search about dogs\n\nThis is the breakdown of subtasks to accomplish that task: 0: Do a google search about dogs\n\n\nWrite a function for: "Do a google search about dogs".\n\nTo write the function, you must follow the following criteria:\n- Include necessary imports.\n- Consider the output from previous functions.\n- Consider the input of the next task.\n- Your function must return something.\n\nDo it in the following steps:\n1. Explain the function logic.\n2. Write the function code.\n3. Do you need to install any packages from pip? yes/no\n    3.a. If yes, what is the pip install command to install them?\n',
+                }
             ]
         )
 
     def test_ufos(self):
-        code.get(
+        code._get(
             [
                 {
-                    "role": "system",
-                    "content": "{'task': 'Do a Google search about UFOs'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Do a Google search about UFOs' is_atomic=True subtasks=None",
-                },
-                {
                     "role": "user",
-                    "content": "Write a python function for: Do a Google search about UFOs.",
-                },
+                    "content": 'You are an assistant that writes clever, readable python code.\n\nThe ultimate goal is to write code for this task: Do a Google search about UFOs\n\nThis is the breakdown of subtasks to accomplish that task: 0: Write a function to call an API to do a Google search\n\n\nWrite a function for: "Write a function to call an API to do a Google search".\n\nTo write the function, you must follow the following criteria:\n- Include necessary imports.\n- Consider the output from previous functions.\n- Consider the input of the next task.\n- Your function must return something.\n\nDo it in the following steps:\n1. Explain the function logic.\n2. Write the function code.\n3. Do you need to install any packages from pip? yes/no\n    3.a. If yes, what is the pip install command to install them?\n',
+                }
             ]
         )
 
     def test_visit_website(self):
-        code.get(
+        code._get(
             [
-                {"role": "system", "content": "{'task': 'Visit openai.com'}"},
-                {
-                    "role": "assistant",
-                    "content": "task='Visit openai.com' is_atomic=True subtasks=None",
-                },
                 {
                     "role": "user",
-                    "content": "Write a python function for: Visit openai.com.",
-                },
+                    "content": 'You are an assistant that writes clever, readable python code.\n\nThe ultimate goal is to write code for this task: Visit openai.com\n\nThis is the breakdown of subtasks to accomplish that task: 0: Visit openai.com\n\n\nWrite a function for: "Visit openai.com".\n\nTo write the function, you must follow the following criteria:\n- Include necessary imports.\n- Consider the output from previous functions.\n- Consider the input of the next task.\n- Your function must return something.\n\nDo it in the following steps:\n1. Explain the function logic.\n2. Write the function code.\n3. Do you need to install any packages from pip? yes/no\n    3.a. If yes, what is the pip install command to install them?\n',
+                }
             ]
         )
 
     def test_subway(self):
-        code.get(
+        code._get(
             [
                 {
-                    "role": "system",
-                    "content": "{'task': 'Check the next C train arrival at Spring Street'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Check the next C train arrival at Spring Street' is_atomic=False subtasks=[SubTask(task='Find a reliable source of real-time train schedules', is_code_solvable=True), SubTask(task='Write a function to scrape or call an API to get the train schedules', is_code_solvable=True), SubTask(task='Filter the schedules for the C train at Spring Street', is_code_solvable=True), SubTask(task='Find the next train arrival from the filtered schedules', is_code_solvable=True)]",
-                },
-                {
                     "role": "user",
-                    "content": "Write a python function for: Find a reliable source of real-time train schedules.",
-                },
+                    "content": 'You are an assistant that writes clever, readable python code.\n\nThe ultimate goal is to write code for this task: Check the next C train arrival at Spring Street\n\nThis is the breakdown of subtasks to accomplish that task: 0: Find an API or data source that provides real-time subway train arrival times for NYC, 1: Write a function to call the API or scrape the data source, 2: Filter the data to find the next C train arrival at Spring Street\n\nThis is the function for the previous task "Write a function to call the API or scrape the data source":\n\nimport requests\n\n\ndef call_subway_api(api_url: str, headers: dict):\n    response = requests.get(api_url, headers=headers)\n    return response.json()\n\n\nWrite a function for: "Filter the data to find the next C train arrival at Spring Street".\n\nTo write the function, you must follow the following criteria:\n- Include necessary imports.\n- Consider the output from previous functions.\n- Consider the input of the next task.\n- Your function must return something.\n\nDo it in the following steps:\n1. Explain the function logic.\n2. Write the function code.\n3. Do you need to install any packages from pip? yes/no\n    3.a. If yes, what is the pip install command to install them?\n',
+                }
             ]
         )
 
     def test_katana(self):
-        code.get(
+        code._get(
             [
                 {
-                    "role": "system",
-                    "content": "{'task': 'Check if a reservation is needed for Katana Kitten at this time'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Check if a reservation is needed for Katana Kitten at this time' is_atomic=False subtasks=[SubTask(task='Find the official website or a reliable source of information for Katana Kitten', is_code_solvable=True), SubTask(task='Scrape the website or source to find information about reservation requirements', is_code_solvable=True), SubTask(task='Parse the scraped data to determine if a reservation is needed at this time', is_code_solvable=True)]",
-                },
-                {
                     "role": "user",
-                    "content": "Write a python function for: Find the official website or a reliable source of information for Katana Kitten.",
-                },
-            ]
-        )
-
-    def test_ad(self):
-        code.get(
-            [
-                {
-                    "role": "system",
-                    "content": "{'task': 'Scrape the website, download all images, pick the best one, create a headline, and edit it to fit 500x600.'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Scrape the website, download all images, pick the best one, create a headline, and edit it to fit 500x600.' is_atomic=False subtasks=[SubTask(task='Scrape the website', is_code_solvable=True), SubTask(task='Download all images', is_code_solvable=True), SubTask(task='Pick the best one', is_code_solvable=False), SubTask(task='Create a headline', is_code_solvable=False), SubTask(task='Edit the image to fit 500x600', is_code_solvable=True)]",
-                },
-                {
-                    "role": "user",
-                    "content": "Write a python function for: Scrape the website.",
-                },
+                    "content": "You are an assistant that writes clever, readable python code.\n\nThe ultimate goal is to write code for this task: Check if a reservation is needed for Katana Kitten at this time\n\nThis is the breakdown of subtasks to accomplish that task: 0: Scrape the website of Katana Kitten to find reservation information, 1: Analyze the current time and compare it with the reservation requirements\n\nThis is the function for the previous task \"Scrape the website of Katana Kitten to find reservation information\":\n\nimport requests\nfrom bs4 import BeautifulSoup\n\n\ndef scrape_katana_kitten():\n    # Send a GET request to the website\n    response = requests.get('https://www.katanakitten.com/')\n    \n    # Create a BeautifulSoup object to parse the HTML\n    soup = BeautifulSoup(response.text, 'html.parser')\n    \n    # Find the HTML elements that contain the reservation information\n    reservation_elements = soup.find_all('div', class_='reservation-info')\n    \n    # Extract the necessary information from the reservation elements\n    reservation_info = []\n    for element in reservation_elements:\n        time = element.find('span', class_='reservation-time').text\n        availability = element.find('span', class_='reservation-availability').text\n        reservation_info.append({'time': time, 'availability': availability})\n    \n    return reservation_info\n\n\nWrite a function for: \"Analyze the current time and compare it with the reservation requirements\".\n\nTo write the function, you must follow the following criteria:\n- Include necessary imports.\n- Consider the output from previous functions.\n- Consider the input of the next task.\n- Your function must return something.\n\nDo it in the following steps:\n1. Explain the function logic.\n2. Write the function code.\n3. Do you need to install any packages from pip? yes/no\n    3.a. If yes, what is the pip install command to install them?\n",
+                }
             ]
         )
 
     def test_code(self):
-        code.get(
+        code._get(
             [
                 {
-                    "role": "system",
-                    "content": "{'task': 'Execute the Python code for performing a Google search'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Execute the Python code for performing a Google search' is_atomic=False subtasks=[SubTask(task='Install the necessary Python library', is_code_solvable=True), SubTask(task='Write the Python function for performing a Google search', is_code_solvable=True), SubTask(task='Execute the Python function', is_code_solvable=True)]",
-                },
-                {
                     "role": "user",
-                    "content": "Write a python function for: Install the necessary Python library.",
-                },
-            ]
-        )
-
-    def test_maps(self):
-        code.get(
-            [
-                {
-                    "role": "system",
-                    "content": "{'task': 'Use the Google Maps API to find out when Katana Kitten is open'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Use the Google Maps API to find out when Katana Kitten is open' is_atomic=False subtasks=[SubTask(task='Get API key for Google Maps', is_code_solvable=False), SubTask(task='Write a function to call the Google Maps API', is_code_solvable=True), SubTask(task='Extract opening hours from the API response', is_code_solvable=True)]",
-                },
-                {
-                    "role": "user",
-                    "content": "Write a python function for: Write a function to call the Google Maps API.",
-                },
-            ]
-        )
-
-    def test_learn(self):
-        code.get(
-            [
-                {
-                    "role": "system",
-                    "content": "{'task': 'Find the latest Google Calendar documentation, learn how to use it, and make a summary of your calendar.'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Find the latest Google Calendar documentation, learn how to use it, and make a summary of your calendar.' is_atomic=False subtasks=[SubTask(task='Find the latest Google Calendar documentation.', is_code_solvable=True), SubTask(task='Learn how to use Google Calendar API.', is_code_solvable=False), SubTask(task='Make a summary of your calendar.', is_code_solvable=True)]",
-                },
-                {
-                    "role": "user",
-                    "content": "Write a python function for: Find the latest Google Calendar documentation..",
-                },
+                    "content": 'You are an assistant that writes clever, readable python code.\n\nThe ultimate goal is to write code for this task: Execute the Python code for performing a Google search\n\nThis is the breakdown of subtasks to accomplish that task: 0: Write a function to call Google Search API, 1: Handle the response from the API\n\nThis is the function for the previous task "Write a function to call Google Search API":\n\nimport requests\n\ndef call_google_search_api(query):\n    url = f\'https://www.googleapis.com/customsearch/v1?q={query}\'\n    response = requests.get(url)\n    return response.json()\n\n\nWrite a function for: "Handle the response from the API".\n\nTo write the function, you must follow the following criteria:\n- Include necessary imports.\n- Consider the output from previous functions.\n- Consider the input of the next task.\n- Your function must return something.\n\nDo it in the following steps:\n1. Explain the function logic.\n2. Write the function code.\n3. Do you need to install any packages from pip? yes/no\n    3.a. If yes, what is the pip install command to install them?\n',
+                }
             ]
         )
 
     def test_snl(self):
-        code.get(
+        code._get(
             [
                 {
-                    "role": "system",
-                    "content": "{'task': 'Do a Google search about how to attend SNL'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Do a Google search about how to attend SNL' is_atomic=False subtasks=[SubTask(task='Write a function to call a Google Search API', is_code_solvable=True), SubTask(task='Parse the search results to extract relevant information', is_code_solvable=True)]",
-                },
-                {
                     "role": "user",
-                    "content": "Write a python function for: Write a function to call a Google Search API.",
-                },
+                    "content": 'You are an assistant that writes clever, readable python code.\n\nThe ultimate goal is to write code for this task: Do a Google search about how to attend SNL\n\nThis is the breakdown of subtasks to accomplish that task: 0: Write a function to call an API to do a Google search, 1: Parse the search results to find relevant information\n\nThis is the function for the previous task "Write a function to call an API to do a Google search":\n\nimport requests\n\ndef google_search(query):\n    url = f\'https://www.googleapis.com/customsearch/v1?q={query}&key=YOUR_API_KEY&cx=YOUR_CX\'\n    response = requests.get(url)\n    data = response.json()\n    return data\n\n\nWrite a function for: "Parse the search results to find relevant information".\n\nTo write the function, you must follow the following criteria:\n- Include necessary imports.\n- Consider the output from previous functions.\n- Consider the input of the next task.\n- Your function must return something.\n\nDo it in the following steps:\n1. Explain the function logic.\n2. Write the function code.\n3. Do you need to install any packages from pip? yes/no\n    3.a. If yes, what is the pip install command to install them?\n',
+                }
             ]
         )
 
     def test_seo(self):
-        code.get(
+        code._get(
             [
                 {
-                    "role": "system",
-                    "content": "{'task': 'Visit the article and generate SEO recommendations'}",
-                },
-                {
-                    "role": "assistant",
-                    "content": "task='Visit the article and generate SEO recommendations' is_atomic=False subtasks=[SubTask(task='Fetch the content of the article from the provided URL', is_code_solvable=True), SubTask(task='Parse the content to extract text, headings, meta tags, etc.', is_code_solvable=True), SubTask(task='Analyze the extracted information for SEO optimization', is_code_solvable=True), SubTask(task='Generate SEO recommendations based on the analysis', is_code_solvable=True)]",
-                },
-                {
                     "role": "user",
-                    "content": "Write a python function for: Fetch the content of the article from the provided URL.",
-                },
+                    "content": "You are an assistant that writes clever, readable python code.\n\nThe ultimate goal is to write code for this task: Visit the article and generate SEO recommendations\n\nThis is the breakdown of subtasks to accomplish that task: 0: Visit the website and scrape the article, 1: Extract the text from the article, 2: Analyze the keyword density in the article, 3: Check for the presence of meta tags, 4: Check for the presence of alt tags in images, 5: Check for the presence of internal and external links, 6: Extract the text content from the website, 7: Analyze the keyword density in the content, 8: Check for the presence of meta tags and alt tags, 9: Check for the presence of internal and external links, 10: Generate recommendations based on the analysis\n\nThis is the function for the previous task \"Visit the website and scrape the article\":\n\nimport requests\nfrom bs4 import BeautifulSoup\n\n\ndef scrape_article(url):\n    # Send a GET request to the website URL\n    response = requests.get(url)\n    \n    # Parse the HTML content of the website\n    soup = BeautifulSoup(response.content, 'html.parser')\n    \n    # Find the article element and extract the text\n    article = soup.find('article')\n    article_text = article.get_text()\n    \n    return article_text\n\n\nWrite a function for: \"Extract the text from the article\".\n\nTo write the function, you must follow the following criteria:\n- Include necessary imports.\n- Consider the output from previous functions.\n- Consider the input of the next task.\n- Your function must return something.\n\nDo it in the following steps:\n1. Explain the function logic.\n2. Write the function code.\n3. Do you need to install any packages from pip? yes/no\n    3.a. If yes, what is the pip install command to install them?\n",
+                }
             ]
         )

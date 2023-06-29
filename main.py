@@ -80,7 +80,6 @@ def run(_conversation: List[Dict[str, str]] = []) -> None:
                 break
 
             atomic_tasks = find_atomic_tasks(task_tree)
-            print_system(atomic_tasks)
 
             output = execute_tasks(task_tree.task, atomic_tasks)
             conversation.add_function(
