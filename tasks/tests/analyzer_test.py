@@ -27,6 +27,16 @@ class Tests(TestCase):
             ]
         )
 
+    def test_subway_1(self):
+        analyzer.task_breakdown(
+            [
+                {
+                    "role": "user",
+                    "content": "Task: Find an API or data source that provides real-time subway train arrival times for NYC.",
+                }
+            ]
+        )
+
     def test_katana(self):
         analyzer.task_breakdown(
             [

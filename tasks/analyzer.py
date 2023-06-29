@@ -47,7 +47,7 @@ Be resourceful. For example,
 - To visit a website, you can write a function that scrapes the website.
 
 Answer the following questions:
-- Could you write a one python function to accomplish this task? yes/no.
+- Could you write a single python function to accomplish this task? yes/no.
 - If no,
     - How would you break it apart into more subtasks?
     - For each subtask, can it be accomplished by writing code? yes/no."""

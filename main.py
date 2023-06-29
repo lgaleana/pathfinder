@@ -135,7 +135,7 @@ def build_solvable_tree(conversation: Conversation, task: str) -> TaskTree:
             )
 
         subtasks = [s.task for s in task_breakdown.subtasks]
-        conversation.add_assistant(str({"is_atomic": "false", "subtasks": subtasks}))
+        conversation.add_assistant(str({"subtasks": subtasks}))
 
         subtask_trees = []
         for subtask in solvable_subtasks:
